@@ -123,7 +123,6 @@ more process.txt | uniq -c|sort -rn
 过滤多余的行
 more process.text  | sort |uniq -c| sort -rn
 
-
 尽可能避免红色框中的内容
 
 ★ 值得注意的mysql进程状态 (要避免这些状态)
@@ -633,12 +632,6 @@ select (select count(*) from lx_com) - (select count(*) from lx_com where id<100
 4: union优化
 注意: union all 不过滤 效率提高,如非必须,请用union all
 因为 union去重的代价非常高, 放在程序里去重.
-
-
-
-需要复习一遍     之后写出个人总结
-25-31着重学习
-
 
 
 
