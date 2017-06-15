@@ -1,0 +1,37 @@
+#存储过程  
+create procedure changefrozen()
+BEGIN
+#定义变量 
+declare i int DEFAULT 0 ;
+declare d int DEFAULT 0 ;
+declare y_id int;
+declare y_uid int;
+declare y_task_id int;
+declare y_frozentime int;
+declare y_frozenmoney int;
+declare y_unfreezetime int;
+declare y_status int;
+#定义变量
+#使用游标
+declare cur_exp cursor for 
+ select id,uid,task_id,frozentime,frozenmoney,unfreezetime,`status` from keke_witkey_frozencapital where `status`= 0 and unfreezetime<=unix_timestamp();
+ declare continue handler for not found set i=1;
+open cur_exp;
+fetch cur_exp into y_id,y_uid,y_task_id,y_frozentime,y_frozenmoney,y_unfreezetime,y_status;
+while i<> 1 do
+  if y_id is not null then
+   update keke_witkey_frozencapital set `status`=1,updatetime=unix_timestamp() where id=y_id and `status`=0;
+   set @res= (select `status` from keke_witkey_frozencapital where id=y_id limit 1);  #变量赋值
+   if @res>0 then                                                                     #判断当前的数据状态是否发生变化
+    update keke_witkey_space set balance=balance+y_frozenmoney where uid=y_uid;
+    set @u_username=(select username from keke_witkey_space where uid=y_uid limit 1);  #变量赋值
+    set @u_balance=(select balance from keke_witkey_space where uid=y_uid limit 1);    #变量赋值
+    #数据插入
+    insert into keke_witkey_finance(fina_type,fina_action,uid,username,obj_type,obj_id,fina_cash,user_balance,fina_time,fina_mem) values('in','mysql',y_uid,@u_username,'frozen',y_task_id,y_frozenmoney,@u_balance,unix_timestamp(),'冻结资金自动解冻');
+   end if;
+  end if;
+fetch cur_exp into y_id,y_uid,y_task_id,y_frozentime,y_frozenmoney,y_unfreezetime,y_status;
+end while;
+close cur_exp;
+#游标结束
+END;
